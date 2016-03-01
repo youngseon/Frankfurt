@@ -9,6 +9,8 @@ typedef struct {
 	unsigned int   bfOffBits;
 } FRABitmapFileHeader;
 
+//Windows V3 Header
+//BITMAPINFOHEADER
 typedef struct {
 	unsigned int    biSize;
 	int             biWidth;
@@ -25,7 +27,8 @@ typedef struct {
 #pragma pack(pop)
 
 typedef enum {
-	FRABIT_MEM_ERROR = -1,
+	FRABIT_MEM_NULL_ERROR = -2,
+	FRABIT_MEM_ALLOC_ERROR = -1,
 	FRABIT_SUCCESS = 0,
 	FRABIT_FILE_ERROR,
 	FRABIT_NOT_SUPPORTED_FORMAT
@@ -36,6 +39,7 @@ typedef struct {
 	int height;
 	int bytesPerPixel;
 	char* bits;
-} FRABitamp;
+} FRARawImage;
 
-int OpenBitmapFile(const char* filename, FRABitamp** result);
+int OpenBitmapFile(const char* filename, FRARawImage** result);
+int SaveBitmapFile(const char* filename, FRARawImage** input);

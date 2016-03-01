@@ -3,10 +3,10 @@
 #include<stdio.h>
 
 // result is allocated by this function.
-int OpenBitmapFile(const char* filename, FRABitamp** result) {
-	*result = (FRABitamp*)malloc(sizeof(FRABitamp));
+int OpenBitmapFile(const char* filename, FRARawImage** result) {
+	*result = (FRARawImage*)malloc(sizeof(FRARawImage));
 	if (*result == NULL) {
-		return FRABIT_MEM_ERROR;
+		return FRABIT_MEM_ALLOC_ERROR;
 	}
 	(*result)->bits = NULL;
 
@@ -33,20 +33,33 @@ int OpenBitmapFile(const char* filename, FRABitamp** result) {
 
 	FRABitampInfoHeader infoHeader;
 	fread(&infoHeader, sizeof(infoHeader), 1, filePtr);
+	int width, height;
+	int bitsPerPixel, bytesPerPixel;
+	int pitch;
+	int dataSize;
+	if (infoHeader.biSize == 40) {
+		//Window V3 header
 
-	//Check header size is equal to size of read data.
-	const int frontOfDataPos = ftell(filePtr);
-	if (frontOfDataPos != (int)(fileHeader.bfOffBits)) {
+		//Check header size is equal to size of read data.
+		const int frontOfDataPos = ftell(filePtr);
+		if (frontOfDataPos != (int)(fileHeader.bfOffBits)) {
+			fclose(filePtr);
+			return FRABIT_NOT_SUPPORTED_FORMAT;
+		}
+
+		width = infoHeader.biWidth;
+		height = infoHeader.biHeight;
+		bitsPerPixel = infoHeader.biBitCount;
+		bytesPerPixel = bitsPerPixel / 8;
+		pitch = (width * bytesPerPixel + 3) & ~3;
+		dataSize = pitch * height;
+		
+	}
+	else {
 		fclose(filePtr);
 		return FRABIT_NOT_SUPPORTED_FORMAT;
 	}
 
-	const int width = infoHeader.biWidth;
-	const int height = infoHeader.biHeight;
-	const int bitsPerPixel = infoHeader.biBitCount;
-	const int bytesPerPixel = bitsPerPixel / 8;
-	const int pitch = (width * bytesPerPixel + 3) & ~3;
-	const int dataSize = pitch * height;
 	(*result)->width = width;
 	(*result)->height = height;
 	(*result)->bytesPerPixel = bytesPerPixel;
@@ -54,12 +67,12 @@ int OpenBitmapFile(const char* filename, FRABitamp** result) {
 
 	if ((*result)->bits == NULL) {
 		fclose(filePtr);
-		return FRABIT_MEM_ERROR;
+		return FRABIT_MEM_ALLOC_ERROR;
 	}
 
 	if (infoHeader.biCompression == 0
 		&& bitsPerPixel == 24
-		&& (int)infoHeader.biSizeImage == dataSize) {
+		&& ((int)infoHeader.biSizeImage == dataSize || (int)infoHeader.biSizeImage == 0)) {
 		//Read 24bit and no compression bitmap
 		const int destPitch = width * bytesPerPixel;
 		const int gap = pitch - destPitch;
@@ -92,5 +105,66 @@ int OpenBitmapFile(const char* filename, FRABitamp** result) {
 	else {
 		fclose(filePtr);
 		return FRABIT_NOT_SUPPORTED_FORMAT;
+	}
+}
+int SaveBitmapFile(const char* filename, FRARawImage** input) {
+	if (input == NULL || (*input) == NULL) {
+		return FRABIT_MEM_NULL_ERROR;
+	}
+
+	if (filename == NULL || filename[0] == '\0') {
+		return FRABIT_FILE_ERROR;
+	}
+
+	FILE* filePtr;
+	filePtr = fopen(filename, "wb");
+
+	if (filePtr == NULL) {
+		fclose(filePtr);
+		return FRABIT_FILE_ERROR;
+	}
+	const int pitch = ((*input)->width * (*input)->bytesPerPixel + 3) & ~3;
+	const int height = (*input)->height;
+	const int width = (*input)->width;
+
+	FRABitmapFileHeader fileHeader;
+	fileHeader.bfType = ('B' | ((int)'M' << 8));
+	fileHeader.bfReserved1 = 0;
+	fileHeader.bfReserved2 = 0;
+	fileHeader.bfOffBits = sizeof(FRABitmapFileHeader) + sizeof(FRABitampInfoHeader);
+	int dataSize = pitch * height;
+	fileHeader.bfSize = dataSize + fileHeader.bfOffBits;
+
+	fwrite(&fileHeader, sizeof(fileHeader), 1, filePtr);
+
+	FRABitampInfoHeader infoHeader;
+	infoHeader.biSize = sizeof(FRABitampInfoHeader);
+	infoHeader.biWidth = width;
+	infoHeader.biHeight = height;
+	infoHeader.biPlanes = 1;
+	infoHeader.biBitCount = (*input)->bytesPerPixel;
+	infoHeader.biCompression = 0;
+	infoHeader.biSizeImage = 0;
+	infoHeader.biXPelsPerMeter = 0;
+	infoHeader.biYPelsPerMeter = 0;
+	infoHeader.biClrUsed = 0;
+	infoHeader.biClrImportant = 0;
+
+	fwrite(&infoHeader, sizeof(infoHeader), 1, filePtr);
+
+	const int destPitch = width * (*input)->bytesPerPixel;
+	const int gap = pitch - destPitch;
+	char* curDest = (*input)->bits + height * destPitch;
+	for (int y = height; y > 0; y--) {
+		curDest -= destPitch;
+		fread(curDest, destPitch, 1, filePtr);
+		if (gap > 0) {
+			fseek(filePtr, gap, SEEK_CUR);
+		}
+		for (int x = 0; x < width; x++) {
+			char temp = curDest[x * 3];
+			curDest[x * 3] = curDest[x * 3 + 2];
+			curDest[x * 3 + 2] = temp;
+		}
 	}
 }
