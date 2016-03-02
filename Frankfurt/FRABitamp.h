@@ -38,8 +38,10 @@ typedef struct {
 	int width;
 	int height;
 	int bytesPerPixel;
-	char* bits;
+	unsigned char* bits;
 } FRARawImage;
 
 int OpenBitmapFile(const char* filename, FRARawImage** result);
 int SaveBitmapFile(const char* filename, FRARawImage** input);
+
+

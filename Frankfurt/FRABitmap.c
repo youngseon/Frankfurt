@@ -1,6 +1,7 @@
 #include"FRABitamp.h"
 #include<stdlib.h>
 #include<stdio.h>
+#include<string.h>
 
 // result is allocated by this function.
 int OpenBitmapFile(const char* filename, FRARawImage** result) {
@@ -97,7 +98,7 @@ int OpenBitmapFile(const char* filename, FRARawImage** result) {
 
 	//Check if there no data remain.
 	const int expectedEnd =
-		fileHeader.bfOffBits + infoHeader.biSizeImage;
+		fileHeader.bfSize;
 	if (expectedEnd == ftell(filePtr)) {
 		fclose(filePtr);
 		return FRABIT_SUCCESS;
@@ -142,7 +143,7 @@ int SaveBitmapFile(const char* filename, FRARawImage** input) {
 	infoHeader.biWidth = width;
 	infoHeader.biHeight = height;
 	infoHeader.biPlanes = 1;
-	infoHeader.biBitCount = (*input)->bytesPerPixel;
+	infoHeader.biBitCount = (*input)->bytesPerPixel * 8;
 	infoHeader.biCompression = 0;
 	infoHeader.biSizeImage = 0;
 	infoHeader.biXPelsPerMeter = 0;
@@ -155,16 +156,25 @@ int SaveBitmapFile(const char* filename, FRARawImage** input) {
 	const int destPitch = width * (*input)->bytesPerPixel;
 	const int gap = pitch - destPitch;
 	char* curDest = (*input)->bits + height * destPitch;
+
+	char* buffer;
+	char* pad;
+	buffer = (char*)malloc(destPitch);
+	pad = (char*)malloc(gap);
+	memset(pad, 0, gap);
 	for (int y = height; y > 0; y--) {
 		curDest -= destPitch;
-		fread(curDest, destPitch, 1, filePtr);
-		if (gap > 0) {
-			fseek(filePtr, gap, SEEK_CUR);
-		}
+		memcpy(buffer, curDest, destPitch);
 		for (int x = 0; x < width; x++) {
-			char temp = curDest[x * 3];
-			curDest[x * 3] = curDest[x * 3 + 2];
-			curDest[x * 3 + 2] = temp;
+			char tmp = buffer[x * 3];
+			buffer[x * 3] = buffer[x * 3 + 2];
+			buffer[x * 3 + 2] = tmp;
 		}
+		fwrite(buffer, destPitch, 1, filePtr);
+		fwrite(pad, gap, 1, filePtr);
 	}
+	fclose(filePtr);
+	free(buffer);
+	free(pad);
+	return FRABIT_SUCCESS;
 }
