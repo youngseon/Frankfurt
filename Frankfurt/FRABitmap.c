@@ -4,7 +4,7 @@
 #include<string.h>
 
 // result is allocated by this function.
-int OpenBitmapFile(const char* filename, FRARawImage** result) {
+int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 	*result = (FRARawImage*)malloc(sizeof(FRARawImage));
 	if (*result == NULL) {
 		return FRABIT_MEM_ALLOC_ERROR;
@@ -108,7 +108,7 @@ int OpenBitmapFile(const char* filename, FRARawImage** result) {
 		return FRABIT_NOT_SUPPORTED_FORMAT;
 	}
 }
-int SaveBitmapFile(const char* filename, FRARawImage** input) {
+int FRASaveBitmapFile(const char* filename, FRARawImage** input) {
 	if (input == NULL || (*input) == NULL) {
 		return FRABIT_MEM_NULL_ERROR;
 	}

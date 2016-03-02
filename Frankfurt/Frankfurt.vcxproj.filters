@@ -5,12 +5,11 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="비트맵">
       <UniqueIdentifier>{81ab3b60-bfe4-4d53-8a40-2be081423b33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="이미지 처리">
+      <UniqueIdentifier>{c3576b81-f597-495b-a742-a50827ed00c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -20,10 +19,16 @@
     <ClCompile Include="FRABitmap.c">
       <Filter>비트맵</Filter>
     </ClCompile>
+    <ClCompile Include="FRAImageProcedure.c">
+      <Filter>이미지 처리</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FRABitamp.h">
       <Filter>비트맵</Filter>
+    </ClInclude>
+    <ClInclude Include="FRAImageProcedure.h">
+      <Filter>이미지 처리</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -41,7 +41,7 @@ typedef struct {
 	unsigned char* bits;
 } FRARawImage;
 
-int OpenBitmapFile(const char* filename, FRARawImage** result);
-int SaveBitmapFile(const char* filename, FRARawImage** input);
+int FRAOpenBitmapFile(const char* filename, FRARawImage** result);
+int FRASaveBitmapFile(const char* filename, FRARawImage** input);
 
 
