@@ -23,12 +23,12 @@ int FRAInvertImage(FRARawImage* input) {
 	}
 #endif
 
-	//나영선
+	//Yeongseon Na
 #ifdef _CPU_PARRELL
 
 #endif
 
-	//김강산
+	//Kangsan Kim
 #ifdef _GPU_PARRELL
 
 #endif
