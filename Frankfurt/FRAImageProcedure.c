@@ -27,7 +27,7 @@ int FRAInvertImage(FRARawImage* input) {
 	//Yeongseon Na
 #ifdef _CPU_PARRELL
 	int maxBitsNum = input->height * input->width * 3;
-	#pragma omp parallel
+	#pragma omp parallel for
 	for( int x = 0; x < maxBitsNum; x++)
 	{
 		input->bits[x] = 255 - input->bits[x];
