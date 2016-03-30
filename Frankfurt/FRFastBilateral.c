@@ -47,18 +47,15 @@ mixed_vector trilinear_interpolation( mixed_vector*** data, double x, double y, 
     const double x_alpha = x - x_index;
     const double z_alpha = z - z_index;
 
-	//printf(" x : %zd, y : %zd, z : %zd, xx : %zd, yy : %zd, x_alpha : %f, y_alpha : %f\n", x_index, y_index, z_index, xx_index, yy_index, x_alpha, y_alpha);
-	//printf(" weight : %f", data[x_index][y_index][z_index].weight);
-	//printf(" wow %f", (1.0-y_alpha) * (1.0-x_alpha) * (1.0-z_alpha) * data[x_index][y_index][z_index].weight);
 	output.weight =  
 		(1.0-y_alpha) * (1.0-x_alpha) * (1.0-z_alpha) * data[x_index][y_index][z_index].weight +
 		(1.0-y_alpha) * x_alpha       * (1.0-z_alpha) * data[xx_index][y_index][z_index].weight +
-        y_alpha       * (1.0-x_alpha) * (1.0-z_alpha) * data[x_index][yy_index][z_index].weight +
-        y_alpha       * x_alpha       * (1.0-z_alpha) * data[xx_index][yy_index][z_index].weight +
-        (1.0-y_alpha) * (1.0-x_alpha) * z_alpha       * data[x_index][y_index][zz_index].weight +
-        (1.0-y_alpha) * x_alpha       * z_alpha       * data[xx_index][y_index][zz_index].weight +
-        y_alpha       * (1.0-x_alpha) * z_alpha       * data[x_index][yy_index][zz_index].weight +
-        y_alpha       * x_alpha       * z_alpha       * data[xx_index][yy_index][zz_index].weight;
+		y_alpha       * (1.0-x_alpha) * (1.0-z_alpha) * data[x_index][yy_index][z_index].weight +
+		y_alpha       * x_alpha       * (1.0-z_alpha) * data[xx_index][yy_index][z_index].weight +
+		(1.0-y_alpha) * (1.0-x_alpha) * z_alpha       * data[x_index][y_index][zz_index].weight +
+		(1.0-y_alpha) * x_alpha       * z_alpha       * data[xx_index][y_index][zz_index].weight +
+		y_alpha       * (1.0-x_alpha) * z_alpha       * data[x_index][yy_index][zz_index].weight +
+		y_alpha       * x_alpha       * z_alpha       * data[xx_index][yy_index][zz_index].weight;
 
     for( int c = 0; c < 3; c ++ )
 	{
@@ -133,7 +130,6 @@ void FRAFindMinMaxLoc(FRARawImage* input, int* min, int* max)
 		}
 	}
 
-	printf("wow");
 	(*min) = (int)tmpMin;
 	(*max) = (int)tmpMax;
 }
@@ -142,8 +138,6 @@ void FRAFindMinMaxLoc_RGB(FRARawImage* input, int color, int* min, int* max)
 {
 	int tmpMin = 256, minLoc = 0;
 	int tmpMax = -1, maxLoc = 0;
-
-	printf("height: %d, width: %d", input->height, input->width);
 
 	for( int y = 0; y < input->height; y++ )
 	{
@@ -164,7 +158,7 @@ void FRAFindMinMaxLoc_RGB(FRARawImage* input, int color, int* min, int* max)
 			}
 		}//x
 	}//y
-//do something
+
 	(*min) = tmpMin;
 	(*max) = tmpMax;
 }
@@ -213,15 +207,8 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 	small_depth = (size_t)(( *max - *min ) / sigmaColor ) + 1 + 2 * padding_c;
 	color_min = (*min);
 
-	printf("small width : %zd\n", small_width);
-	printf("small height : %zd\n", small_height);
-	printf("small depth : %zd %d %d\n", small_depth, *max, *min);
-	/*printf("input R : %zd, G: %zd, B: %zd\n", input->bits[ FRAPosToIndex_RGB(1, 1, width, height) ],  input->bits[ FRAPosToIndex_RGB(1, 1, width, height) + G ], 
-		 input->bits[ FRAPosToIndex_RGB(1, 1, width, height) + B]);*/
-	printf("filter good \n");
 	/* downsample */
 
-	//create and initialize 3d array
 	mixed_vector*** data = Build3DArray(small_width, small_height, small_depth);
 	
 	for( int y = 0; y < height; y ++ )
@@ -234,7 +221,6 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 			int index = FRAPosToIndex(x, y, width, height);
 			
 			small_z =  (size_t)((base->bits[ index ] - color_min) / sigmaColor + 0.5) + padding_c;
-			//do something with cool 3d vector!
 
 			mixed_vector tmp = data[small_x][small_y][small_z];
 			int index_RGB = FRAPosToIndex_RGB(x, y, width, height);
@@ -242,10 +228,6 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 			tmp.result.bits[R] += input->bits[ index_RGB  + R ];
 			tmp.result.bits[G] += input->bits[ index_RGB  + G ];
 			tmp.result.bits[B] += input->bits[ index_RGB  + B ];
-			if( x == 5 && y == 5 )
-			{
-				printf("x: %zd, y: %zd, z: %zd R : %zd\n", small_x, small_y, small_z, tmp.result.bits[R]); 
-			}
 			data[small_x][small_y][small_z] = tmp;
 
 		}//x
@@ -302,9 +284,8 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 							b_curr = data[x][y][z];
 							b_next = data[x][y][z + 1];
 						}
-						//printf("dim %d, prev : %zd, curr: %zd, nex: %zd\n", dim, b_prev.result.bits[R],  b_curr.result.bits[R],  b_next.result.bits[R]);
+						
 						tmp_vec.weight = ( b_prev.weight + b_next.weight + 2.0 * b_curr.weight ) /4.0;
-						//printf("x : %d, y : %d, z : %d\n", x, y, z);
 						tmp_vec.result.bits[R] =  ( b_prev.result.bits[R] + b_next.result.bits[R] + 2.0 * b_curr.result.bits[R] ) /4.0;
 						tmp_vec.result.bits[G] =  ( b_prev.result.bits[G] + b_next.result.bits[G] + 2.0 * b_curr.result.bits[G] ) /4.0;
 						tmp_vec.result.bits[B] =  ( b_prev.result.bits[B] + b_next.result.bits[B] + 2.0 * b_curr.result.bits[B] ) /4.0;
@@ -329,19 +310,6 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 			weight[x][y] = 0;
 		}
 	}
-/*
-	for( int x = 0; x < small_width; x ++ )
-	{
-		for( int y = 0; y < small_width; y ++ )
-		{
-			for( int z = 0; z < small_depth; z ++ )
-			{
-				data[x][y][z].result.bits[R] /= data[x][y][z].weight != 0 ? data[x][y][z].weight : 1;
-				data[x][y][z].result.bits[G] /= data[x][y][z].weight != 0 ? data[x][y][z].weight : 1;
-				data[x][y][z].result.bits[B] /= data[x][y][z].weight != 0 ? data[x][y][z].weight : 1;
-			}
-		}
-	}*/
 
 	for( int y = 0; y < height; y ++ )
 	{
@@ -355,7 +323,6 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 			mixed_vector out = trilinear_interpolation(data, px, py, pz, small_height, small_width, small_depth);
 			
 			weight[x][y] = out.weight;
-			//printf("bits : %zd %zd %zd %f\n", out.result.bits[R], out.result.bits[G], out.result.bits[B], out.weight);
 			input->bits[ FRAPosToIndex_RGB(x, y, width, height) + R ] = out.result.bits[R]/out.weight;
 			input->bits[ FRAPosToIndex_RGB(x, y, width, height) + G ] = out.result.bits[G]/out.weight;
 			input->bits[ FRAPosToIndex_RGB(x, y, width, height) + B ] = out.result.bits[B]/out.weight;
