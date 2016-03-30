@@ -1,13 +1,15 @@
-#include "FRABitamp.h"
+#include "FRABitmap.h"
 #include "FRAImageProcedure.h"
 #include<stdlib.h>
 #include<stdio.h>
 
 int main() {
 	FRARawImage* input;
-	int ret = FRAOpenBitmapFile("test.bmp", &input);
+	int ret = FRAOpenBitmapFile("../input/p.bmp", &input);
 	printf("%d\n", ret);
 	FRAInvertImage(input);
-	FRASaveBitmapFile("test_out.bmp", &input);
+	FRARemoveHaze(input);
+	//FRAInvertImage(input);
+	FRASaveBitmapFile("pi_out.bmp", &input);
 	return 0;
 }

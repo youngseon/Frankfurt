@@ -1,4 +1,5 @@
-#include"FRABitamp.h"
+#include"FRAEnum.h"
+#include"FRABitmap.h"
 #include<stdlib.h>
 #include<stdio.h>
 #include<string.h>
@@ -7,20 +8,19 @@
 int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 	*result = (FRARawImage*)malloc(sizeof(FRARawImage));
 	if (*result == NULL) {
-		return FRABIT_MEM_ALLOC_ERROR;
+		return FRA_MEM_ALLOC_ERROR;
 	}
 	(*result)->bits = NULL;
 
 	if (filename == NULL || filename[0] == '\0') {
-		return FRABIT_FILE_ERROR;
+		return FRA_FILE_ERROR;
 	}
 
 	FILE* filePtr;
 	filePtr = fopen(filename, "rb");
 
 	if (filePtr == NULL) {
-		fclose(filePtr);
-		return FRABIT_FILE_ERROR;
+		return FRA_FILE_ERROR;
 	}
 
 	FRABitmapFileHeader fileHeader;
@@ -29,7 +29,7 @@ int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 	//Check if file is bitmap or not.
 	if (fileHeader.bfType != ('B' | ((int)'M' << 8))) {
 		fclose(filePtr);
-		return FRABIT_NOT_SUPPORTED_FORMAT;
+		return FRA_NOT_SUPPORTED_FORMAT;
 	}
 
 	FRABitampInfoHeader infoHeader;
@@ -45,7 +45,7 @@ int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 		const int frontOfDataPos = ftell(filePtr);
 		if (frontOfDataPos != (int)(fileHeader.bfOffBits)) {
 			fclose(filePtr);
-			return FRABIT_NOT_SUPPORTED_FORMAT;
+			return FRA_NOT_SUPPORTED_FORMAT;
 		}
 
 		width = infoHeader.biWidth;
@@ -58,7 +58,7 @@ int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 	}
 	else {
 		fclose(filePtr);
-		return FRABIT_NOT_SUPPORTED_FORMAT;
+		return FRA_NOT_SUPPORTED_FORMAT;
 	}
 
 	(*result)->width = width;
@@ -68,7 +68,7 @@ int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 
 	if ((*result)->bits == NULL) {
 		fclose(filePtr);
-		return FRABIT_MEM_ALLOC_ERROR;
+		return FRA_MEM_ALLOC_ERROR;
 	}
 
 	if (infoHeader.biCompression == 0
@@ -93,7 +93,7 @@ int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 	}
 	else {
 		fclose(filePtr);
-		return FRABIT_NOT_SUPPORTED_FORMAT;
+		return FRA_NOT_SUPPORTED_FORMAT;
 	}
 
 	//Check if there no data remain.
@@ -101,20 +101,20 @@ int FRAOpenBitmapFile(const char* filename, FRARawImage** result) {
 		fileHeader.bfSize;
 	if (expectedEnd == ftell(filePtr)) {
 		fclose(filePtr);
-		return FRABIT_SUCCESS;
+		return FRA_SUCCESS;
 	}
 	else {
 		fclose(filePtr);
-		return FRABIT_NOT_SUPPORTED_FORMAT;
+		return FRA_NOT_SUPPORTED_FORMAT;
 	}
 }
 int FRASaveBitmapFile(const char* filename, FRARawImage** input) {
 	if (input == NULL || (*input) == NULL) {
-		return FRABIT_MEM_NULL_ERROR;
+		return FRA_MEM_NULL_ERROR;
 	}
 
 	if (filename == NULL || filename[0] == '\0') {
-		return FRABIT_FILE_ERROR;
+		return FRA_FILE_ERROR;
 	}
 
 	FILE* filePtr;
@@ -122,7 +122,7 @@ int FRASaveBitmapFile(const char* filename, FRARawImage** input) {
 
 	if (filePtr == NULL) {
 		fclose(filePtr);
-		return FRABIT_FILE_ERROR;
+		return FRA_FILE_ERROR;
 	}
 	const int pitch = ((*input)->width * (*input)->bytesPerPixel + 3) & ~3;
 	const int height = (*input)->height;
@@ -176,5 +176,5 @@ int FRASaveBitmapFile(const char* filename, FRARawImage** input) {
 	fclose(filePtr);
 	free(buffer);
 	free(pad);
-	return FRABIT_SUCCESS;
+	return FRA_SUCCESS;
 }
