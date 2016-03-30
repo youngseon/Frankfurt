@@ -317,8 +317,8 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 		{
 			size_t z = base->bits[ FRAPosToIndex(x,y,base->width, base->height) ] - color_min;
 			double px = (double)(x) / sigmaSpace + padding_s;
-            double py = (double)(y) / sigmaSpace + padding_s;
-            double pz = (double)(z) / sigmaColor + padding_c;
+			double py = (double)(y) / sigmaSpace + padding_s;
+			double pz = (double)(z) / sigmaColor + padding_c;
 
 			mixed_vector out = trilinear_interpolation(data, px, py, pz, small_height, small_width, small_depth);
 			
