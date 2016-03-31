@@ -235,17 +235,12 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 
 	printf("downsample good \n");
 	/* convolution */
-	int offset[3];
 
-	offset[0] = &(data[1][0][0]) - &(data[0][0][0]);
-	offset[1] = &(data[0][1][0]) - &(data[0][0][0]);
-	offset[2] = &(data[0][0][1]) - &(data[0][0][0]);
 
 	mixed_vector*** buffer = Build3DArray(small_width, small_height, small_depth);
 
 	for( int dim = 0; dim < 3; dim ++ )
 	{
-		const int off = offset[dim];
 		for( int iter = 0; iter < 2; iter ++ )
 		{
 			//swap(buffer, data)
@@ -268,21 +263,21 @@ int FRAFastBilateral(FRARawImage* input, FRARawImage* base, int sigmaColor, int 
 						
 						if( dim == 0 )
 						{
-							b_prev = data[ x - 1 ][y][z];
-							b_curr = data[x][y][z];
-							b_next = data[ x + 1 ][y][z];
+							b_prev = buffer[ x - 1 ][y][z];
+							b_curr = buffer[x][y][z];
+							b_next = buffer[ x + 1 ][y][z];
 						}
 						else if( dim == 1)
 						{
-							b_prev = data[x][y - 1][z];
-							b_curr = data[x][y][z];
-							b_next = data[x][y + 1][z];
+							b_prev = buffer[x][y - 1][z];
+							b_curr = buffer[x][y][z];
+							b_next = buffer[x][y + 1][z];
 						}
 						else
 						{
-							b_prev = data[x][y][z - 1];
-							b_curr = data[x][y][z];
-							b_next = data[x][y][z + 1];
+							b_prev = buffer[x][y][z - 1];
+							b_curr = buffer[x][y][z];
+							b_next = buffer[x][y][z + 1];
 						}
 						
 						tmp_vec.weight = ( b_prev.weight + b_next.weight + 2.0 * b_curr.weight ) /4.0;
